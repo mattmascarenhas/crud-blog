@@ -1,4 +1,5 @@
-﻿using Blog.Models;
+﻿using Azure;
+using Blog.Models;
 using Blog.Repositories;
 using Dapper.Contrib.Extensions;
 using Microsoft.Data.SqlClient;
@@ -8,11 +9,11 @@ namespace Blog {
     internal class Program {
         private const string CONNECTION_STRING = @"Server=localhost,1433;Database=Blog;User ID=sa;Password=root;TrustServerCertificate=True";
         static void Main(string[] args) {
-            var connnection = new SqlConnection(CONNECTION_STRING);
-            Menu();
-            //ReadUsers(connnection);
-            //ReadRoles(connnection);
-            //ReadTags(connnection);
+            var _connection = new SqlConnection(CONNECTION_STRING);
+            Menu(_connection);
+            //ReadUsers(_connection);
+            //ReadRoles(_connection);
+            //ReadTags(_connection);
             //ReadUser(1);
             //CreateUser();
             //UpdateUser();
@@ -20,7 +21,7 @@ namespace Blog {
 
         }
 
-        public static void Menu() {
+        public static void Menu(SqlConnection _connection) {
             Console.Clear();
             int option;
             Console.WriteLine("Bem-vindo ao banco de dados do BLOG!");
@@ -38,28 +39,30 @@ namespace Blog {
 
             switch (option) {
                 case 1:
-                    CreateUser(); break;
+                    CreateUser(_connection); break;
                 case 2:
-                    CreateRole(); break;
+                    CreateRole(_connection); break;
                 case 3:
-                    CreateCategory(); break;
+                    CreateCategory(_connection); break;
                 case 4:
-                    CreateTag(); break;
+                    CreateTag(_connection); break;
                 case 5: 
-                    CreatePost() ; break;
-                case 6: ; break;
+                    CreatePost(_connection) ; break;
+                case 6: 
+                    CreateUserRole(_connection) ; break;
                 case 7: ; break;
-                case 0: ; break;
+                case 0:
+                    System.Environment.Exit(0); break;
                 default: {
                     Console.WriteLine("Digite uma opcão válida");
                     Console.ReadLine();
                     Console.Clear();
-                    Menu();
+                    Menu(_connection);
                 } break;
             }
         }
 
-        public static void CreateUser() {
+        public static void CreateUser(SqlConnection _connection) {
             Console.Clear();
             var user = new User();
             Console.WriteLine("===== Cadastro de usuário =====");
@@ -82,10 +85,10 @@ namespace Blog {
                 Console.WriteLine($"Cadastro do {user.Name} finalizado");
             }
             Console.ReadLine();
-            Menu();
+            Menu(_connection);
         }
 
-        public static void CreateRole() {
+        public static void CreateRole(SqlConnection _connection) {
             Console.Clear();
             var role = new Role();
             Console.WriteLine("===== Cadastro de perfil =====");
@@ -100,10 +103,10 @@ namespace Blog {
                 Console.WriteLine($"Cadastro do perfil {role.Name} finalizado");
             }
             Console.ReadLine();
-            Menu();
+            Menu(_connection);
         }
 
-        public static void CreateCategory() {
+        public static void CreateCategory(SqlConnection _connection) {
             Console.Clear();
             var category = new Category();
             Console.WriteLine("===== Cadastro de categoria =====");
@@ -118,10 +121,10 @@ namespace Blog {
                 Console.WriteLine($"Cadastro da categoria {category.Name} finalizado");
             }
             Console.ReadLine();
-            Menu();
+            Menu(_connection);
         }
 
-        public static void CreateTag() {
+        public static void CreateTag(SqlConnection _connection) {
             Console.Clear();
             var tag = new Tag();
             Console.WriteLine("===== Cadastro de tag =====");
@@ -136,10 +139,10 @@ namespace Blog {
                 Console.WriteLine($"Cadastro da tag {tag.Name} finalizado");
             }
             Console.ReadLine();
-            Menu();
+            Menu(_connection);
         }
 
-        public static void CreatePost() {
+        public static void CreatePost(SqlConnection _connection) {
             Console.Clear();
             var post = new Post();
             Console.WriteLine("===== Cadastro de post =====");
@@ -165,36 +168,74 @@ namespace Blog {
                 if (author == null && category == null) {
                     Console.WriteLine("Autor e categoria inválidos");
                     Console.ReadLine();
-                    Menu();
+                    Menu(_connection);
                 } if (author == null) {
                     Console.WriteLine("Autor inválido");
                     Console.ReadLine();
-                    Menu();
+                    Menu(_connection);
                 } if (category == null){
                     Console.WriteLine("Categoria inválida");
                     Console.ReadLine();
-                    Menu();
+                    Menu(_connection);
                 } else {
                     connection.Insert<Post>(post);
                     Console.WriteLine($"Cadastro do Post {post.Title} finalizado");
                 }
             }
             Console.ReadLine();
-            Menu();
+            Menu(_connection);
+        }
+
+        public static void CreateUserRole(SqlConnection _connection) {
+            Console.Clear();
+            var userRole = new UserRole();
+            Console.WriteLine("===== Vinculo de Usuário com Perfil =====");
+
+            Console.WriteLine("");
+            ReadUsers(_connection);
+            Console.WriteLine("");
+
+            Console.Write("Id do usuário: ");
+            userRole.UserId = int.Parse(Console.ReadLine());
+
+            Console.WriteLine("");
+            ReadRoles(_connection);
+            Console.WriteLine("");
+
+            Console.Write("Id do Perfil: ");
+            userRole.RoleId = int.Parse(Console.ReadLine());
+
+            using (var connection = new SqlConnection(CONNECTION_STRING)) {
+                connection.Insert<UserRole>(userRole);
+                Console.WriteLine("Vinculo realizado com sucesso.");
+            }
+            Console.ReadLine();
+            Menu(_connection);
         }
 
         public static void ReadUsers(SqlConnection connection) {
             var repository = new UserRepository(connection);
             var users = repository.GetWithRole();
 
+            Console.WriteLine("===== Usuários / Perfil Vinculado =====");
             foreach (var user in users) {
-                Console.WriteLine(user.Name);
+                Console.Write($"{user.Id} - {user.Name} / ");
                 foreach (var role in user.Roles) {
-                    Console.WriteLine($" - {role.Name}");
-
+                        Console.WriteLine($"{role.Name}");
                 }
             }
         }
+
+        public static void ReadRoles(SqlConnection _connection) {
+            var repository = new Repository<Role>(_connection);
+            var roles = repository.GetAll();
+
+            Console.WriteLine("======== Perfis ========");
+            foreach (var role in roles) {
+                Console.WriteLine($"{role.Id} - {role.Name}");
+            }
+        }
+
 
         public static void ReadUser(int userId) {
             using (var connection = new SqlConnection()) {
@@ -203,14 +244,6 @@ namespace Blog {
             }
         }
 
-        public static void ReadRoles(SqlConnection connection) {
-            var repository = new Repository<Role>(connection);
-            var roles = repository.GetAll();
-
-            foreach (var role in roles) {
-                Console.WriteLine(role.Name);
-            }
-        }
 
         public static void ReadTags(SqlConnection connection) {
             var repository = new Repository<Tag>(connection);
@@ -224,12 +257,12 @@ namespace Blog {
         public static void UpdateUser() {
             var user = new User() {
                 Id= 2,
-                Bio = "233X MVP Microsoft",
-                Email = "hello@baltario.com",
+                Bio = "MVP ",
+                Email = "hello@.com",
                 Image = "https://....",
-                Name = "Balta.io",
+                Name = "io",
                 PasswordHash = "HASH",
-                Slug = "baltario-io"
+                Slug = "-io"
             };
             using (var connection = new SqlConnection()) {
                 connection.Update<User>(user);
@@ -243,8 +276,6 @@ namespace Blog {
                 connection.Delete<User>(user);
                 Console.WriteLine($"Exclusão realizada com sucesso");
             }
-        }
-
-        
+        }  
     }
 }
