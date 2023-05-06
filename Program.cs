@@ -4,6 +4,7 @@ using Blog.Repositories;
 using Dapper.Contrib.Extensions;
 using Microsoft.Data.SqlClient;
 using System;
+using System.Data.Common;
 
 namespace Blog {
     internal class Program {
@@ -11,17 +12,36 @@ namespace Blog {
         static void Main(string[] args) {
             var _connection = new SqlConnection(CONNECTION_STRING);
             Menu(_connection);
-            //ReadUsers(_connection);
-            //ReadRoles(_connection);
-            //ReadTags(_connection);
-            //ReadUser(1);
-            //CreateUser();
-            //UpdateUser();
-            //DeleteUser();
-
         }
 
         public static void Menu(SqlConnection _connection) {
+            Console.Clear();
+            int option;
+            Console.WriteLine("Bem-vindo ao banco de dados do BLOG!");
+            Console.WriteLine("Selecione uma opção abaixo: ");
+            Console.WriteLine("1- Fazer um cadastro");
+            Console.WriteLine("2- Fazer um vinculo");
+            Console.WriteLine("0- Sair");
+
+            option =  int.Parse(Console.ReadLine());
+
+            switch (option) {
+                case 1:
+                    RegisterMenu(_connection); break;
+                case 2:
+                    LinkMenu(_connection); break;
+                case 0:
+                    System.Environment.Exit(0); break;
+                default: {
+                    Console.WriteLine("Digite uma opcão válida");
+                    Console.ReadLine();
+                    Console.Clear();
+                    Menu(_connection);
+                } break;
+            }
+        }
+
+        public static void RegisterMenu(SqlConnection _connection) {
             Console.Clear();
             int option;
             Console.WriteLine("Bem-vindo ao banco de dados do BLOG!");
@@ -31,34 +51,66 @@ namespace Blog {
             Console.WriteLine("3- Cadastrar uma Categoria");
             Console.WriteLine("4- Cadastrar uma Tag");
             Console.WriteLine("5- Cadastrar um post");
-            Console.WriteLine("6- Vincular um usuário a um perfil");
-            Console.WriteLine("7- Vincular um post a uma tag");
-            Console.WriteLine("0- Sair");
+            Console.WriteLine("0- Voltar ao menu inicial");
 
-            option =  int.Parse(Console.ReadLine());
+            option = int.Parse(Console.ReadLine());
 
             switch (option) {
                 case 1:
-                    CreateUser(_connection); break;
+                    CreateUser(_connection);
+                    break;
                 case 2:
-                    CreateRole(_connection); break;
+                    CreateRole(_connection);
+                    break;
                 case 3:
-                    CreateCategory(_connection); break;
+                    CreateCategory(_connection);
+                    break;
                 case 4:
-                    CreateTag(_connection); break;
-                case 5: 
-                    CreatePost(_connection) ; break;
-                case 6: 
-                    CreateUserRole(_connection) ; break;
-                case 7: ; break;
+                    CreateTag(_connection);
+                    break;
+                case 5:
+                    CreatePost(_connection);
+                    break;
                 case 0:
-                    System.Environment.Exit(0); break;
+                    Menu(_connection);
+                    break;
                 default: {
                     Console.WriteLine("Digite uma opcão válida");
                     Console.ReadLine();
                     Console.Clear();
+                    RegisterMenu(_connection);
+                }
+                break;
+            }
+        }
+        public static void LinkMenu(SqlConnection _connection) {
+            Console.Clear();
+            int option;
+            Console.WriteLine("Bem-vindo ao banco de dados do BLOG!");
+            Console.WriteLine("Selecione uma opção abaixo: ");
+            Console.WriteLine("1- Vincular um usuário a um perfil");
+            Console.WriteLine("2- Vincular um post a uma tag");
+            Console.WriteLine("0- Sair");
+
+            option = int.Parse(Console.ReadLine());
+
+            switch (option) {
+                case 1:
+                    LinkUserRole(_connection);
+                    break;
+                case 2:
+                    LinkPostTag(_connection);
+                    break;
+                case 0:
                     Menu(_connection);
-                } break;
+                    break;
+                default: {
+                    Console.WriteLine("Digite uma opcão válida");
+                    Console.ReadLine();
+                    Console.Clear();
+                    LinkMenu(_connection);
+                }
+                break;
             }
         }
 
@@ -186,7 +238,7 @@ namespace Blog {
             Menu(_connection);
         }
 
-        public static void CreateUserRole(SqlConnection _connection) {
+        public static void LinkUserRole(SqlConnection _connection) {
             Console.Clear();
             var userRole = new UserRole();
             Console.WriteLine("===== Vinculo de Usuário com Perfil =====");
@@ -237,20 +289,59 @@ namespace Blog {
         }
 
 
-        public static void ReadUser(int userId) {
-            using (var connection = new SqlConnection()) {
-                var user = connection.Get<User>(userId);
-                Console.WriteLine(user.Name);
-            }
-        }
+        public static void LinkPostTag(SqlConnection _connection) {
+            Console.Clear();
+            var postTag = new PostTag();
+            Console.WriteLine("===== Vinculo de Post com Tag =====");
 
+            Console.WriteLine("");
+            ReadPosts(_connection);
+            Console.WriteLine("");
+
+            Console.Write("Id do Post: ");
+            postTag.PostId = int.Parse(Console.ReadLine());
+
+            Console.WriteLine("");
+            ReadTags(_connection);
+            Console.WriteLine("");
+
+            Console.Write("Id da Tag: ");
+            postTag.TagId = int.Parse(Console.ReadLine());
+
+            using (var connection = new SqlConnection(CONNECTION_STRING)) {
+                connection.Insert<PostTag>(postTag);
+                Console.WriteLine("Vinculo realizado com sucesso.");
+            }
+            Console.ReadLine();
+            Menu(_connection);
+        }
 
         public static void ReadTags(SqlConnection connection) {
             var repository = new Repository<Tag>(connection);
             var tags = repository.GetAll();
 
+            Console.WriteLine("======== Tags ========");
             foreach (var tag in tags) {
-                Console.WriteLine(tag.Name);
+                Console.WriteLine($"{tag.Id} - {tag.Name}");
+            }
+        }
+
+        public static void ReadPosts(SqlConnection connection) {
+            var repository = new Repository<Post>(connection);
+            var posts = repository.GetAll();
+
+            Console.WriteLine("======== Posts ========");
+            foreach (var post in posts) {
+                Console.WriteLine($"{post.Id} - {post.Title}");
+            }
+        }
+
+
+        //daqui pra baixo nao foi implementado 
+        public static void ReadUser(int userId) {
+            using (var connection = new SqlConnection()) {
+                var user = connection.Get<User>(userId);
+                Console.WriteLine(user.Name);
             }
         }
 
