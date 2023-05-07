@@ -2,6 +2,7 @@
 using Blog.Models;
 using Blog.Repositories;
 using Blog.Services.Menu;
+using Blog.Utils;
 using Dapper.Contrib.Extensions;
 using Microsoft.Data.SqlClient;
 
@@ -25,18 +26,8 @@ namespace Blog.Services {
             Console.Write("Slug: ");
             user.Slug = Console.ReadLine();
             Console.WriteLine("");
-            //verificar se ja existe o slug, o slug deve ser unico
-            var repository = new UserRepository(_connection);
-            var items = repository.GetWithRole();
-            foreach (var item in items) {
-                while (item.Slug == user.Slug) {
-                    Console.WriteLine("O slug já existe, insira novamente");
-                    Console.Write("Slug: ");
-                    user.Slug = Console.ReadLine();
-                    Console.WriteLine("");
-                }
-            }
-
+            //verificar se o slug é repetido
+            CheckUserInfo.SlugCheck(_connection, user);
 
             using (_connection) {
                 _connection.Insert<User>(user);

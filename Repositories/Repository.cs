@@ -12,8 +12,9 @@ namespace Blog.Repositories {
             _connection = connection;
 
         //CRUD 
-        public IEnumerable<TModel> GetAll() =>
-            _connection.GetAll<TModel>();
+        public IEnumerable<TModel> GetAll() {
+            return _connection.GetAll<TModel>();
+        }
 
         public TModel Get(int id) =>
             _connection.Get<TModel>(id);

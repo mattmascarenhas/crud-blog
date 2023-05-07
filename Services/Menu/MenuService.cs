@@ -99,19 +99,19 @@ namespace Blog.Services.Menu {
 
             switch (option) {
                 case 1:
-                    CreateService.CreateUser(_connection);
+                    UpdateService.UpdateUser(_connection);
                     break;
                 case 2:
-                    CreateService.CreateRole(_connection);
+                    UpdateService.UpdateRole(_connection);
                     break;
                 case 3:
-                    CreateService.CreateCategory(_connection);
+                    UpdateService.UpdateCategory(_connection);
                     break;
                 case 4:
-                    CreateService.CreateTag(_connection);
+                    UpdateService.UpdateTag(_connection);
                     break;
                 case 5:
-                    CreateService.CreatePost(_connection);
+                    UpdateService.UpdatePost(_connection);
                     break;
                 case 0:
                     Menu(_connection);
@@ -119,7 +119,6 @@ namespace Blog.Services.Menu {
                 default: {
                     Console.WriteLine("Digite uma opcão válida");
                     Console.ReadLine();
-                    Console.Clear();
                     RegisterMenu(_connection);
                 }
                 break;

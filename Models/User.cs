@@ -2,8 +2,7 @@
 
 namespace Blog.Models {
     [Table("[User]")] //buscando a referencia da tabela no banco de dados, Table do Dapper.Contrib.Extensions
-    public class User
-    {
+    public class User {
         public User() =>
             Roles = new List<Role>();
         
