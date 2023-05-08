@@ -49,6 +49,15 @@ namespace Blog.Services {
             }
         }
 
+        public static void ReadCategories(SqlConnection connection) {
+            var repository = new Repository<Category>(connection);
+            var categories = repository.GetAll();
+
+            Console.WriteLine("======== Categorias ========");
+            foreach (var category in categories) {
+                Console.WriteLine($"{category.Id} - {category.Name}");
+            }
+        }
 
     }
 }

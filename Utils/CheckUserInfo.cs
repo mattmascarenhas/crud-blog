@@ -32,6 +32,11 @@ namespace Blog.Utils {
             return repository.GetWithRole().Any(item => item.Id == id);
         }
 
-
+        public static bool IdExistUserRole(SqlConnection _connection, int userId, int userRole) {
+            //verificar se o Id existe
+            var repository = new Repository<UserRole>(_connection);
+            var items = repository.GetAll();
+            return items.Any(item => item.UserId == userId && item.RoleId == userRole);
+        }
     }
 }
